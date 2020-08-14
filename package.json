@@ -1,0 +1,35 @@
+{
+  "name": "@notify.events/node-red",
+  "version": "1.0.1",
+  "description": "Notify.Events node for Node-RED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/notify-events/node-red.git"
+  },
+  "keywords": [
+    "node-red",
+    "notification",
+    "alert",
+    "teams",
+    "viber",
+    "telegram",
+    "slack",
+    "sms",
+    "voice",
+    "call"
+  ],
+  "author": "Notify.Events <support@notify.events> (https://notify.events)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/notify-events/node-red/issues"
+  },
+  "homepage": "https://github.com/notify-events/node-red#readme",
+  "node-red": {
+    "nodes": {
+      "notify-events": "notify-events.js"
+    }
+  },
+  "dependencies": {
+    "@notify.events/nodejs": "^1.0.0"
+  }
+}

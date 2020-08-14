@@ -1,0 +1,316 @@
+<script type="text/x-red" data-template-name="notify-events">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-tasks"></i> Channel</label>
+        <input type="text" id="node-input-channel" placeholder="Channel">
+    </div>
+    <div class="form-row">
+        <label for="node-input-title"><i class="fa fa-ellipsis-h"></i> Title</label>
+        <input type="text" id="node-input-title" placeholder="title">
+        <input type="hidden" id="node-input-titleType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-text"><i class="fa fa-ellipsis-h"></i> Text</label>
+        <input type="text" id="node-input-text" placeholder="payload">
+        <input type="hidden" id="node-input-textType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-priority"><i class="fa fa-ellipsis-h"></i> Priority</label>
+        <input type="text" id="node-input-priority" placeholder="priority">
+        <input type="hidden" id="node-input-priorityType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-level"><i class="fa fa-ellipsis-h"></i> Level</label>
+        <input type="text" id="node-input-level" placeholder="level">
+        <input type="hidden" id="node-input-levelType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-image"><i class="fa fa-image"></i> Images</label>
+        <ol id="node-input-image"></ol>
+        <template id="node-input-image-item">
+            <table style="width: 100%">
+                <tr>
+                    <td width="25%">
+                        <select class="node-input-image-type" style="width: 100%">
+                            <option value="url">URL</option>
+                            <option value="file">File</option>
+                            <option value="content">Content</option>
+                        </select>
+                    </td>
+                    <td width="75%">
+                        <input type="text" class="node-input-image-value" style="width: 100%">
+                        <input type="hidden" class="node-input-image-valueType">
+                    </td>
+                </tr>
+            </table>
+        </template>
+    </div>
+    <div class="form-row">
+        <label for="node-input-file"><i class="fa fa-file"></i> Files</label>
+        <ol id="node-input-file"></ol>
+        <template id="node-input-file-item">
+            <table style="width: 100%">
+                <tr>
+                    <td width="25%">
+                        <select class="node-input-file-type" style="width: 100%">
+                            <option value="url">URL</option>
+                            <option value="file">File</option>
+                            <option value="content">Content</option>
+                        </select>
+                    </td>
+                    <td width="75%">
+                        <input type="text" class="node-input-file-value" style="width: 100%">
+                        <input type="hidden" class="node-input-file-valueType">
+                    </td>
+                </tr>
+            </table>
+        </template>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="notify-events">
+    <p>Connects to the <a href="https://notify.events" target="_blank">Notify.Events</a> service and sends notifications.</p>
+    <h3>Details</h3>
+    <p>You can specify the following parameters:</p>
+    <ul>
+        <li>title - message heading (optional)</li>
+        <li>text - message text (allowed html-tag: &lt;b&gt;, &lt;i&gt;, &lt;a&gt;, &lt;br&gt;)</li>
+        <li>priority - message priority (highest, high, normal, low, lowest) (optional)</li>
+        <li>level - message level (verbose, info, notice, warning, error, success) (optional)</li>
+        <li>images[] - attach images by url, file, content</li>
+        <li>files[] - attach files by url, file, content</li>
+    </ul>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('notify-events', {
+        category: 'network',
+        color: '#ecc2c2',
+        inputs: 1,
+        output: 0,
+        icon: 'notify-events.svg',
+        align: 'right',
+        defaults: {
+            name: {value: ''},
+            channel: {type: 'notify-events-channel', value: '', required: true},
+            title: {value: '', validate:RED.validators.typedInput('titleType')},
+            titleType: {value: 'str'},
+            text: {value: 'payload', required: true, validate:RED.validators.typedInput('textType')},
+            textType: {value: 'msg'},
+            priority: {value: 'normal', validate:RED.validators.typedInput('priorityType')},
+            priorityType: {value: 'str'},
+            level: {value: 'info', validate:RED.validators.typedInput('levelType')},
+            levelType: {value: 'str'},
+            images: {value: []},
+            files: {value: []},
+        },
+        label: function() {
+            if (this.name) {
+                return this.name;
+            }
+
+            if (this.channel) {
+                const channel = RED.nodes.getNode(this.channel);
+
+                if (channel.name) {
+                    return channel.name;
+                }
+            }
+
+            return 'notify events';
+        },
+        labelStyle: function() {
+            return this.name ? 'node_label_italic' : '';
+        },
+        oneditprepare: function() {
+            const node = this;
+
+            const fieldTitle = $('#node-input-title');
+
+            if (!node.title) {
+                node.title = '';
+                fieldTitle.val('');
+            }
+
+            if (!node.titleType) {
+                node.titleType = 'str';
+            }
+
+            fieldTitle.typedInput({default: 'msg', types: ['msg', 'str'], typeField: $('#node-input-titleType')});
+
+            const fieldText = $('#node-input-text');
+
+            if (!node.text) {
+                node.text = 'payload';
+                fieldText.val('payload');
+            }
+
+            if (!node.textType) {
+                node.textType = 'msg';
+            }
+
+            fieldText.typedInput({default: 'msg', types: ['msg', 'str'], typeField: $('#node-input-textType')});
+
+            const fieldPriority = $('#node-input-priority');
+
+            if (!node.priority) {
+                node.priority = '';
+                fieldPriority.val('');
+            }
+
+            if (!node.priorityType) {
+                node.priorityType = 'str';
+            }
+
+            fieldPriority.typedInput({default: 'msg', types: ['msg', 'str'], typeField: $('#node-input-priorityType')});
+
+            const fieldLevel = $('#node-input-level');
+
+            if (!node.level) {
+                node.level = '';
+                fieldLevel.val('');
+            }
+
+            if (!node.levelType) {
+                node.levelType = 'str';
+            }
+
+            fieldLevel.typedInput({default: 'msg', types: ['msg', 'str'], typeField: $('#node-input-levelType')});
+
+            if (!node.images) {
+                node.images = [];
+            }
+
+            const fieldImages = $('#node-input-image');
+            fieldImages.editableList({
+                addItem: function(container, i, opt) {
+                    const row = $($('#node-input-image-item').contents()).clone().appendTo(container);
+
+                    const type      = row.find('.node-input-image-type');
+                    const value     = row.find('.node-input-image-value');
+                    const valueType = row.find('.node-input-image-valueType');
+
+                    type.val(opt.type           || 'url');
+                    value.val(opt.value         || '');
+                    valueType.val(opt.valueType || 'str');
+
+                    value.typedInput({default: 'str', types: ['msg', 'str'], typeField: valueType});
+                },
+                sortable: true,
+                removable: true,
+            });
+
+            node.images.forEach(function(image) {
+                fieldImages.editableList('addItem', {type: image.type, value: image.value, valueType: image.valueType});
+            });
+
+            if (!node.files) {
+                node.files = [];
+            }
+
+            const fieldFiles = $('#node-input-file');
+
+            fieldFiles.editableList({
+                addItem: function(container, i, opt) {
+                    const row = $($('#node-input-file-item').contents()).clone().appendTo(container);
+
+                    const type      = row.find('.node-input-file-type');
+                    const value     = row.find('.node-input-file-value');
+                    const valueType = row.find('.node-input-file-valueType');
+
+                    type.val(opt.type           || 'url');
+                    value.val(opt.value         || '');
+                    valueType.val(opt.valueType || 'str');
+
+                    value.typedInput({default: 'str', types: ['msg', 'str'], typeField: valueType});
+                },
+                sortable: true,
+                removable: true,
+            });
+
+            node.files.forEach(function(file) {
+                fieldFiles.editableList('addItem', {type: file.type, value: file.value, valueType: file.valueType});
+            });
+        },
+
+        oneditsave: function() {
+            const node = this;
+
+            node.images = [];
+
+            const images = $('#node-input-image').editableList('items');
+
+            images.each(function() {
+                node.images.push({
+                    type:      $(this).find('.node-input-image-type').val(),
+                    value:     $(this).find('.node-input-image-value').val(),
+                    valueType: $(this).find('.node-input-image-valueType').val(),
+                });
+            });
+
+            node.files = [];
+
+            const files = $('#node-input-file').editableList('items');
+
+            files.each(function() {
+                node.files.push({
+                    type:      $(this).find('.node-input-file-type').val(),
+                    value:     $(this).find('.node-input-file-value').val(),
+                    valueType: $(this).find('.node-input-file-valueType').val(),
+                });
+            });
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="notify-events-channel">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-token"><i class="fa fa-lock"></i> Token</label>
+        <input type="text" id="node-config-input-token" placeholder="Token" maxlength="32">
+    </div>
+    <div class="form-tips">
+        <ul>
+            <li>Sign up to <a href="https://notify.events" target="_blank">Notify.events</a> service</li>
+            <li>Create a channel</li>
+            <li>Add source "Node-RED" and acquire token. Follow the instructions</li>
+            <li>Subscribe in your channel to platform you choose</li>
+            <li>Paste token to notify-events-channel</li>
+        </ul>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="notify-events-channel">
+    <p>Connection configuration of <a href="https://notify.events" target="_blank">Notify.Events</a> service channel.</p>
+    <h3>Details</h3>
+    <p></p>
+    <ul>
+        <li>Sign up to <a href="https://notify.events" target="_blank">Notify.events</a> service</li>
+        <li>Create a channel</li>
+        <li>Add source "Node-RED" and acquire token. Follow the instructions</li>
+        <li>Subscribe in your channel to platform you choose</li>
+        <li>Paste token to notify-events-channel</li>
+    </ul>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('notify-events-channel', {
+        category: 'config',
+        defaults: {
+            name: {value: ''},
+            token: {value: '', required: true, validate: function(v) { return v.trim().length === 32; }},
+        },
+        label: function() {
+            return this.name ? this.name : 'notify events channel';
+        },
+        labelStyle: function() {
+            return this.name ? 'node_label_italic' : '';
+        },
+    });
+</script>
