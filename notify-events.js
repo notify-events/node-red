@@ -23,7 +23,13 @@ module.exports = function(RED) {
 
         function getValue(msg, field, fieldType) {
             if (fieldType === 'msg') {
-                return msg[field];
+                let value = msg;
+
+                field.split('.').forEach(key => {
+                    value = value[key];
+                });
+
+                return value;
             } else if (fieldType === 'str') {
                 return field;
             }
