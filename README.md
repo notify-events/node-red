@@ -7,6 +7,7 @@ This node allows you to receive notifications by:
 * Voice call
 * Telegram
 * Viber
+* Signal
 * Microsoft Teams
 * Facebook Messenger
 * Discord
@@ -20,4 +21,4 @@ You can find a complete list of messengers [here](https://notify.events/features
 
 You can specify the priority and level for each message and then use these properties to distribute notification flows.
 
-Attaching files and images is also supported.
+Attaching files, images and actions is also supported.
