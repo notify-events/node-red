@@ -63,8 +63,10 @@ module.exports = function(RED) {
             node.warn('Action not created!');
         }
 
-        function getValue(msg, field, fieldType) {
-            if (fieldType === 'msg') {
+        function getValue(msg, field, fieldType, customType) {
+            if ((customType !== undefined) && (fieldType === customType)) {
+                return field;
+            } else if (fieldType === 'msg') {
                 let value = msg;
 
                 field.split('.').forEach(key => {
@@ -95,8 +97,8 @@ module.exports = function(RED) {
         node.on('input', function(msg) {
             let title    = getValue(msg, node.title,    node.titleType);
             let text     = getValue(msg, node.text,     node.textType);
-            let priority = getValue(msg, node.priority, node.priorityType);
-            let level    = getValue(msg, node.level,    node.levelType);
+            let priority = getValue(msg, node.priority, node.priorityType, 'ne_priority');
+            let level    = getValue(msg, node.level,    node.levelType, 'ne_level');
 
             const message = new Message(text, title, priority, level);
 

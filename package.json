@@ -1,6 +1,6 @@
 {
   "name": "@notify.events/node-red",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Notify.Events node for Node-RED",
   "repository": {
     "type": "git",
@@ -30,6 +30,6 @@
     }
   },
   "dependencies": {
-    "@notify.events/nodejs": "^1.1.0"
+    "@notify.events/nodejs": "^1.2.0"
   }
 }
